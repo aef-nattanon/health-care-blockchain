@@ -10,7 +10,7 @@ const calculateHashForBlock = (block) => {
 };
 
 const encryption = (data) => {
-  return CryptoJS.AES.encrypt(data, SECRET_KEY).toString();
+  return CryptoJS.AES.encrypt(JSON.stringify(data), SECRET_KEY).toString();
 };
 const decryption = (ciphertext) => {
   return CryptoJS.AES.decrypt(ciphertext, SECRET_KEY).toString(CryptoJS.enc.Utf8);

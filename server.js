@@ -36,7 +36,7 @@ const initHttpServer = () => {
   });
   app.get('/participants/:index/data', (req, res) => {
     const b = blockchain[req.params.index]
-    res.send(JSON.stringify(new Block(b['index'], b['previousHash'], b['timestamp'], b['data'], b['hash']).getData()))
+    res.send(new Block(b['index'], b['previousHash'], b['timestamp'], b['data'], b['hash']).getData())
   });
   app.post('/mineParticipant', (req, res) => {
     const newBlock = blockchainsLogic.generateNextBlock(crypto.encryption(req.body.data), blockchain, Block);
