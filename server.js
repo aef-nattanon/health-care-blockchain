@@ -18,7 +18,7 @@ const MessageType = {
 };
 
 const getGenesisBlock = () => {
-    return new Block(0, `0`, 1465154705, "my genesis block!!", "816534932c2b7154836da6afc367695e6337db8a921823784c14378abed4f7d7");
+    return new Block(0, `0`, 1465154705, '', "816534932c2b7154836da6afc367695e6337db8a921823784c14378abed4f7d7");
 };
 
 let blockchain = [getGenesisBlock()];
@@ -28,6 +28,9 @@ const initHttpServer = () => {
     app.use(bodyParser.json());
 
     app.get('/blocks', (req, res) => res.send(JSON.stringify(blockchain)));
+    app.get('/blocks/:index', (req, res) => {
+        res.send(JSON.stringify(blockchain[req.params.index].getData()))
+    });
     app.post('/mineBlock', (req, res) => {
         const newBlock = generateNextBlock(req.body.data);
         addBlock(newBlock);
@@ -95,9 +98,6 @@ const generateNextBlock = (blockData) => {
     const nextHash = helpers.crypto.calculateHash(nextIndex, previousBlock.hash, nextTimestamp, blockData);
     return new Block(nextIndex, previousBlock.hash, nextTimestamp, blockData, nextHash);
 };
-
-
-
 
 const addBlock = (newBlock) => {
     if (isValidNewBlock(newBlock, getLatestBlock())) {
