@@ -2,8 +2,10 @@ import CryptoJS from 'crypto-js'
 import express from 'express'
 import bodyParser from 'body-parser'
 import WebSocket from 'ws'
-import Block from './models/Participant'
+import models from './src/models'
+import helpers from './src/helpers'
 
+const Block = models.ParticipantBlock
 const http_port = process.env.HTTP_PORT || 3001;
 const p2p_port = process.env.P2P_PORT || 6001;
 const initialPeers = process.env.PEERS ? process.env.PEERS.split(',') : [];
@@ -90,18 +92,12 @@ const generateNextBlock = (blockData) => {
     const previousBlock = getLatestBlock();
     const nextIndex = previousBlock.index + 1;
     const nextTimestamp = new Date().getTime() / 1000;
-    const nextHash = calculateHash(nextIndex, previousBlock.hash, nextTimestamp, blockData);
+    const nextHash = helpers.crypto.calculateHash(nextIndex, previousBlock.hash, nextTimestamp, blockData);
     return new Block(nextIndex, previousBlock.hash, nextTimestamp, blockData, nextHash);
 };
 
 
-const calculateHashForBlock = (block) => {
-    return calculateHash(block.index, block.previousHash, block.timestamp, block.data);
-};
 
-const calculateHash = (index, previousHash, timestamp, data) => {
-    return CryptoJS.SHA256(index + previousHash + timestamp + data).toString();
-};
 
 const addBlock = (newBlock) => {
     if (isValidNewBlock(newBlock, getLatestBlock())) {
@@ -116,9 +112,9 @@ const isValidNewBlock = (newBlock, previousBlock) => {
     } else if (previousBlock.hash !== newBlock.previousHash) {
         console.log('invalid previoushash');
         return false;
-    } else if (calculateHashForBlock(newBlock) !== newBlock.hash) {
-        console.log(typeof (newBlock.hash) + ' ' + typeof calculateHashForBlock(newBlock));
-        console.log('invalid hash: ' + calculateHashForBlock(newBlock) + ' ' + newBlock.hash);
+    } else if (helpers.crypto.calculateHashForBlock(newBlock) !== newBlock.hash) {
+        console.log(typeof (newBlock.hash) + ' ' + typeof helpers.crypto.calculateHashForBlock(newBlock));
+        console.log('invalid hash: ' + helpers.crypto.calculateHashForBlock(newBlock) + ' ' + newBlock.hash);
         return false;
     }
     return true;
