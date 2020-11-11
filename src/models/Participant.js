@@ -5,16 +5,9 @@ export default class ParticipantBlock {
     this.previousHash = previousHash.toString();
     this.timestamp = timestamp;
     this.hash = hash.toString();
-    this.setData(data);
-  }
-
-  setData(data) {
-    // this.data = crypto.encryption(data)
     this.data = data
   }
-
   getData() {
-    // return crypto.decryption(this.data)
-    return this.data
+    return crypto.decryption(this.data)
   }
 }

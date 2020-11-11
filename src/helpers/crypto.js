@@ -13,8 +13,7 @@ const encryption = (data) => {
   return CryptoJS.AES.encrypt(data, SECRET_KEY).toString();
 };
 const decryption = (ciphertext) => {
-  var bytes = CryptoJS.AES.decrypt(ciphertext, SECRET_KEY);
-  return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+  return CryptoJS.AES.decrypt(ciphertext, SECRET_KEY).toString(CryptoJS.enc.Utf8);
 };
 
 export default { calculateHash, calculateHashForBlock, encryption, decryption }

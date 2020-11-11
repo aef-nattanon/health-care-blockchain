@@ -2,8 +2,8 @@ import express from 'express'
 import bodyParser from 'body-parser'
 import WebSocket from 'ws'
 import models from './src/models'
-import helpers from './src/helpers'
-import blockchainsLogic, { MessageType } from './src/blockchain/logic'
+import blockchainsLogic from './src/blockchain/logic'
+import crypto from './src/helpers/crypto'
 import { write, broadcast, initErrorHandler, initMessageHandler } from './src/socket_servers'
 
 const Block = models.ParticipantBlock
@@ -14,7 +14,13 @@ const initialPeers = process.env.PEERS ? process.env.PEERS.split(',') : [];
 let sockets = [];
 
 const getGenesisBlock = () => {
-  return new Block(0, `0`, 1465154705, '', "816534932c2b7154836da6afc367695e6337db8a921823784c14378abed4f7d7");
+  return {
+    "index": 0,
+    "previousHash": `0`,
+    "timestamp": 1465154705,
+    "hash": `816534932c2b7154836da6afc367695e6337db8a921823784c14378abed4f7d7`,
+    "data": `U2FsdGVkX19rnP7i0ysECsV/l7QeKI8oN7oXOyM4vN4=`
+  };
 };
 
 let blockchain = [getGenesisBlock()];
@@ -23,12 +29,17 @@ const initHttpServer = () => {
   const app = express();
   app.use(bodyParser.json());
 
-  app.get('/blocks', (req, res) => res.send(JSON.stringify(blockchain)));
-  app.get('/blocks/:index', (req, res) => {
-    res.send(JSON.stringify(blockchain[req.params.index]))
+  app.get('/participants', (req, res) => res.send(JSON.stringify(blockchain)));
+  app.get('/participants/:index', (req, res) => {
+    const b = blockchain[req.params.index]
+    res.send(JSON.stringify(new Block(b['index'], b['previousHash'], b['timestamp'], b['data'], b['hash'])))
   });
-  app.post('/mineBlock', (req, res) => {
-    const newBlock = blockchainsLogic.generateNextBlock(req.body.data, blockchain, Block);
+  app.get('/participants/:index/data', (req, res) => {
+    const b = blockchain[req.params.index]
+    res.send(JSON.stringify(new Block(b['index'], b['previousHash'], b['timestamp'], b['data'], b['hash']).getData()))
+  });
+  app.post('/mineParticipant', (req, res) => {
+    const newBlock = blockchainsLogic.generateNextBlock(crypto.encryption(req.body.data), blockchain, Block);
     blockchain = blockchainsLogic.addBlock(newBlock, blockchain)
     broadcast(sockets, blockchainsLogic.responseLatestMsg(blockchain));
     console.log('block added: ' + JSON.stringify(newBlock));
