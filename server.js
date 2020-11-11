@@ -1,4 +1,3 @@
-import CryptoJS from 'crypto-js'
 import express from 'express'
 import bodyParser from 'body-parser'
 import WebSocket from 'ws'
@@ -100,24 +99,9 @@ const generateNextBlock = (blockData) => {
 };
 
 const addBlock = (newBlock) => {
-  if (isValidNewBlock(newBlock, getLatestBlock())) {
+  if (blockchains.logic.isValidNewBlock(newBlock, getLatestBlock())) {
     blockchain.push(newBlock);
   }
-};
-
-const isValidNewBlock = (newBlock, previousBlock) => {
-  if (previousBlock.index + 1 !== newBlock.index) {
-    console.log('invalid index');
-    return false;
-  } else if (previousBlock.hash !== newBlock.previousHash) {
-    console.log('invalid previoushash');
-    return false;
-  } else if (helpers.crypto.calculateHashForBlock(newBlock) !== newBlock.hash) {
-    console.log(typeof (newBlock.hash) + ' ' + typeof helpers.crypto.calculateHashForBlock(newBlock));
-    console.log('invalid hash: ' + helpers.crypto.calculateHashForBlock(newBlock) + ' ' + newBlock.hash);
-    return false;
-  }
-  return true;
 };
 
 const connectToPeers = (newPeers) => {
@@ -131,28 +115,13 @@ const connectToPeers = (newPeers) => {
 };
 
 const replaceChain = (newBlocks) => {
-  if (isValidChain(newBlocks) && newBlocks.length > blockchain.length) {
+  if (blockchains.logic.isValidChain(newBlocks, getGenesisBlock) && newBlocks.length > blockchain.length) {
     console.log('Received blockchain is valid. Replacing current blockchain with received blockchain');
     blockchain = newBlocks;
     broadcast(responseLatestMsg());
   } else {
     console.log('Received blockchain invalid');
   }
-};
-
-const isValidChain = (blockchainToValidate) => {
-  if (JSON.stringify(blockchainToValidate[0]) !== JSON.stringify(getGenesisBlock())) {
-    return false;
-  }
-  const tempBlocks = [blockchainToValidate[0]];
-  for (let i = 1; i < blockchainToValidate.length; i++) {
-    if (isValidNewBlock(blockchainToValidate[i], tempBlocks[i - 1])) {
-      tempBlocks.push(blockchainToValidate[i]);
-    } else {
-      return false;
-    }
-  }
-  return true;
 };
 
 const getLatestBlock = () => blockchain[blockchain.length - 1];
